@@ -2,7 +2,7 @@
   "name": "Strength & Recomposition",
   "short_name": "Fitness",
   "description": "Full weekly training program — lift, cardio, mobility, rehab",
-  "start_url": "/index.html",
+  "start_url": "/fitness-app/index.html",
   "display": "standalone",
   "background_color": "#0D0D0D",
   "theme_color": "#0D0D0D",
