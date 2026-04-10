@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Fitness">
+<meta name="theme-color" content="#0D0D0D">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>Strength & Recomposition</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  :root {
+    --bg: #0D0D0D; --bg2: #111; --bg3: #0A0A0A; --bg4: #0C0C0C;
+    --border: #1C1C1C; --border2: #1A1A1A; --border3: #161616;
+    --text: #E8E4DC; --dim: #444; --dim2: #333; --dim3: #2A2A2A; --dim4: #222;
+    --gold: #C8A96E; --teal: #7EB8A4; --purple: #A67EC8;
+    --gold-bg: rgba(200,169,110,0.07); --teal-bg: rgba(126,184,164,0.07); --purple-bg: rgba(166,126,200,0.07);
+    --gold-dim: rgba(200,169,110,0.15); --teal-dim: rgba(126,184,164,0.15); --purple-dim: rgba(166,126,200,0.15);
+    --mono: 'Courier New', monospace; --serif: Georgia, 'Times New Roman', serif;
+    --safe-top: env(safe-area-inset-top); --safe-bottom: env(safe-area-inset-bottom);
+  }
+  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--serif); overflow: hidden; }
+  #app { display: flex; flex-direction: column; height: 100%; padding-top: var(--safe-top); }
+
+  /* HEADER */
+  .header { border-bottom: 1px solid var(--border2); padding: 20px 20px 16px; flex-shrink: 0; }
+  .header-label { font-size: 9px; letter-spacing: 4px; color: var(--dim); text-transform: uppercase; font-family: var(--mono); margin-bottom: 5px; }
+  .header h1 { font-size: 22px; font-weight: normal; letter-spacing: -0.5px; margin-bottom: 3px; }
+  .header-sub { font-size: 11px; color: var(--dim2); font-family: var(--mono); }
+
+  /* NAV */
+  .nav { display: flex; border-bottom: 1px solid var(--border2); background: #090909; flex-shrink: 0; }
+  .nav-btn { flex: 1; padding: 11px 2px; background: none; border: none; border-bottom: 2px solid transparent; color: var(--dim3); font-size: 9px; letter-spacing: 1px; text-transform: uppercase; font-family: var(--mono); cursor: pointer; transition: all 0.2s; }
+  .nav-btn.active { color: var(--text); border-bottom-color: var(--text); }
+
+  /* SCROLL AREA */
+  .scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 18px 18px calc(18px + var(--safe-bottom)); }
+
+  /* DAY TABS */
+  .day-tabs { display: flex; overflow-x: auto; border-bottom: 1px solid var(--border3); background: var(--bg3); flex-shrink: 0; scrollbar-width: none; }
+  .day-tabs::-webkit-scrollbar { display: none; }
+  .day-tab { flex-shrink: 0; padding: 12px 14px; background: none; border: none; border-bottom: 2px solid transparent; color: var(--dim3); font-size: 10px; letter-spacing: 2px; text-transform: uppercase; font-family: var(--mono); cursor: pointer; transition: all 0.2s; }
+
+  /* SECTION LABEL */
+  .sec-label { font-size: 9px; letter-spacing: 3px; color: var(--dim3); text-transform: uppercase; font-family: var(--mono); margin-bottom: 10px; }
+
+  /* CARDS */
+  .card { background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; padding: 14px 16px; margin-bottom: 12px; }
+  .card-dark { background: var(--bg3); border: 1px solid var(--border2); border-radius: 4px; padding: 14px 16px; margin-bottom: 12px; }
+
+  /* MOVEMENT ROW */
+  .mov-row { background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; margin-bottom: 2px; transition: all 0.15s; }
+  .mov-row.done { opacity: 0.55; }
+  .mov-header { display: flex; align-items: center; padding: 13px 14px; cursor: pointer; }
+  .mov-dot { width: 6px; height: 6px; border-radius: 50%; background: #1E1E1E; border: 1px solid #2E2E2E; margin-right: 13px; flex-shrink: 0; transition: all 0.2s; }
+  .mov-dot.checked { background: var(--accent); border-color: var(--accent); }
+  .mov-info { flex: 1; }
+  .mov-name { font-size: 13px; color: var(--text); margin-bottom: 3px; transition: all 0.15s; }
+  .mov-name.done { text-decoration: line-through; color: var(--dim); }
+  .mov-note { font-size: 10px; color: var(--dim3); font-family: var(--mono); line-height: 1.5; }
+  .mov-right { display: flex; align-items: center; gap: 8px; margin-left: 8px; }
+  .mov-sets { font-family: var(--mono); font-size: 11px; color: var(--accent); flex-shrink: 0; }
+  .mov-sets.done { color: var(--dim3); }
+  .log-btn { background: #181818; border: 1px solid #252525; color: #333; border-radius: 3px; padding: 4px 7px; font-size: 9px; font-family: var(--mono); cursor: pointer; letter-spacing: 1px; transition: all 0.15s; flex-shrink: 0; }
+  .log-btn.open { background: var(--accent-dim); border-color: var(--accent-dim2); color: var(--accent); }
+
+  /* LOG PANEL */
+  .log-panel { border-top: 1px solid var(--border2); padding: 13px 14px 15px; background: var(--bg4); }
+  .log-grid-head { display: grid; grid-template-columns: 26px 1fr 1fr 1fr; gap: 5px; margin-bottom: 6px; }
+  .log-grid-row { display: grid; grid-template-columns: 26px 1fr 1fr 1fr; gap: 5px; margin-bottom: 5px; align-items: center; }
+  .log-set-num { font-family: var(--mono); font-size: 10px; color: var(--dim3); }
+  .log-head-cell { font-size: 9px; color: var(--dim4); font-family: var(--mono); letter-spacing: 1px; }
+  .log-input { background: #141414; border: 1px solid var(--dim4); border-radius: 3px; color: var(--text); font-family: var(--mono); font-size: 12px; padding: 5px 7px; width: 100%; outline: none; }
+  .log-input:focus { border-color: var(--accent); }
+  .log-input.weight { color: var(--accent); }
+
+  /* PHASE HEADER */
+  .phase-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; margin-top: 6px; }
+  .phase-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; font-family: var(--mono); }
+  .phase-dur { font-size: 10px; color: var(--dim3); font-family: var(--mono); }
+
+  /* CHECKLIST ROW */
+  .check-row { display: flex; align-items: flex-start; gap: 13px; padding: 12px 14px; background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; margin-bottom: 2px; cursor: pointer; transition: all 0.15s; }
+  .check-row.checked { opacity: 0.55; }
+  .check-dot { width: 6px; height: 6px; border-radius: 50%; background: #1E1E1E; border: 1px solid #2E2E2E; flex-shrink: 0; margin-top: 4px; transition: all 0.2s; }
+  .check-dot.on { background: var(--accent, var(--teal)); border-color: var(--accent, var(--teal)); }
+  .check-body { flex: 1; }
+  .check-name { font-size: 13px; color: var(--text); margin-bottom: 3px; }
+  .check-name.done { text-decoration: line-through; color: var(--dim); }
+  .check-note { font-size: 10px; color: var(--dim3); font-family: var(--mono); line-height: 1.5; }
+  .check-dur { font-family: var(--mono); font-size: 10px; color: var(--accent, var(--teal)); flex-shrink: 0; margin-top: 2px; white-space: nowrap; }
+
+  /* WEEK SCHEDULE */
+  .week-row { display: flex; justify-content: space-between; align-items: center; padding: 13px 14px; background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; margin-bottom: 2px; }
+  .week-day { font-size: 13px; color: var(--text); margin-bottom: 3px; }
+  .week-detail { font-size: 10px; color: var(--dim3); font-family: var(--mono); line-height: 1.5; }
+  .week-tag { font-size: 9px; font-family: var(--mono); letter-spacing: 1px; flex-shrink: 0; margin-left: 10px; }
+
+  /* VOLUME TABLE */
+  .vol-row { display: flex; justify-content: space-between; align-items: center; padding: 13px 14px; border-bottom: 1px solid var(--border3); }
+  .vol-row:last-child { border-bottom: none; }
+  .vol-group { font-size: 13px; color: var(--text); margin-bottom: 3px; }
+  .vol-note { font-size: 10px; color: var(--dim3); font-family: var(--mono); }
+  .vol-sets { font-family: var(--mono); font-size: 12px; color: var(--dim); flex-shrink: 0; margin-left: 12px; }
+
+  /* HISTORY */
+  .hist-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; margin-bottom: 10px; }
+  .hist-head { padding: 11px 14px; border-bottom: 1px solid var(--border3); display: flex; justify-content: space-between; align-items: center; }
+  .hist-mov { font-size: 13px; color: var(--text); margin-bottom: 2px; }
+  .hist-day { font-size: 10px; color: var(--dim2); font-family: var(--mono); }
+  .hist-dot { width: 5px; height: 5px; border-radius: 50%; }
+  .hist-body { padding: 11px 14px; }
+  .hist-grid { display: grid; grid-template-columns: 26px 1fr 1fr 1fr; gap: 5px; margin-bottom: 7px; }
+  .hist-row { display: grid; grid-template-columns: 26px 1fr 1fr 1fr; gap: 5px; margin-bottom: 4px; }
+  .hist-cell { font-family: var(--mono); font-size: 11px; }
+  .hist-head-cell { font-size: 9px; color: var(--dim4); font-family: var(--mono); letter-spacing: 1px; }
+
+  /* INFO BOX */
+  .info-box { padding: 12px 14px; background: var(--bg3); border: 1px solid var(--border2); border-radius: 4px; margin-bottom: 16px; font-size: 11px; color: var(--dim); line-height: 1.7; }
+
+  /* RATIONALE TOGGLE */
+  .rationale-btn { background: none; border: none; color: var(--dim3); font-family: var(--mono); font-size: 9px; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; padding: 0 0 14px; display: block; }
+  .rationale-box { padding: 13px 14px; background: var(--bg3); border: 1px solid var(--border2); border-radius: 4px; margin-bottom: 14px; font-size: 12px; color: var(--dim); line-height: 1.7; font-style: italic; }
+
+  /* CARDIO BOX */
+  .cardio-box { padding: 13px 14px; background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; margin-bottom: 20px; }
+  .cardio-main { font-size: 13px; color: var(--text); margin-bottom: 5px; }
+  .cardio-note { font-size: 10px; color: var(--dim3); font-family: var(--mono); line-height: 1.6; }
+
+  /* PROGRESS BAR */
+  .prog-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+  .prog-focus { font-size: 13px; font-style: italic; }
+  .prog-count { font-family: var(--mono); font-size: 11px; color: var(--dim2); margin-top: 18px; }
+
+  /* SUNDAY */
+  .rest-screen { text-align: center; padding: 60px 20px; }
+  .rest-dash { font-size: 20px; color: #1A1A1A; margin-bottom: 12px; }
+  .rest-label { font-size: 13px; color: var(--dim3); font-family: var(--mono); letter-spacing: 2px; }
+  .rest-sub { font-size: 11px; color: #1A1A1A; font-family: var(--mono); margin-top: 8px; }
+
+  /* EMPTY STATE */
+  .empty { text-align: center; padding: 60px 20px; }
+  .empty-main { font-size: 13px; color: var(--dim3); font-family: var(--mono); margin-bottom: 8px; }
+  .empty-sub { font-size: 11px; color: #1A1A1A; font-family: var(--mono); }
+
+  /* NOTE BULLETS */
+  .note-list { }
+  .note-item { display: flex; gap: 10px; margin-bottom: 8px; }
+  .note-dash { color: #1E1E1E; font-family: var(--mono); font-size: 10px; flex-shrink: 0; margin-top: 3px; }
+  .note-text { font-size: 12px; color: var(--dim); line-height: 1.6; }
+
+  /* INSTALL BANNER */
+  .install-banner { display: none; position: fixed; bottom: calc(20px + var(--safe-bottom)); left: 18px; right: 18px; background: #1A1A1A; border: 1px solid var(--gold); border-radius: 6px; padding: 14px 16px; z-index: 100; }
+  .install-banner.show { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .install-text { font-size: 12px; color: var(--text); line-height: 1.5; }
+  .install-text span { display: block; font-size: 10px; color: var(--dim2); font-family: var(--mono); margin-top: 2px; }
+  .install-btn { background: var(--gold); color: #0D0D0D; border: none; border-radius: 3px; padding: 8px 14px; font-family: var(--mono); font-size: 10px; letter-spacing: 1px; cursor: pointer; flex-shrink: 0; }
+  .install-close { background: none; border: none; color: var(--dim); font-size: 16px; cursor: pointer; flex-shrink: 0; padding: 0 4px; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="header">
+    <div class="header-label">Full Weekly Program</div>
+    <h1>Strength & Recomposition</h1>
+    <div class="header-sub">Lift · Cardio · Mobility · Golf</div>
+  </div>
+  <div class="nav" id="main-nav"></div>
+  <div id="view-container" style="display:flex;flex-direction:column;flex:1;overflow:hidden;"></div>
+</div>
+
+<div class="install-banner" id="install-banner">
+  <div class="install-text">Add to Home Screen<span>Works offline · Saves your data</span></div>
+  <button class="install-btn" id="install-btn">INSTALL</button>
+  <button class="install-close" id="install-close">×</button>
+</div>
+
+<script>
+// ─── DATA ────────────────────────────────────────────────────────────────────
+
+const LIFTING = {
+  Monday: {
+    focus: "Full Body — Squat & Push Primary",
+    rationale: "Squat and bench on fresh legs. Barbell row balances horizontal press. RDL seeds posterior chain early in the week. Overhead press and lateral raise finish shoulders without overlap.",
+    cardio: { duration: "20–30 min", incline: "6–7%", pace: "2.5–3.0 mph", note: "Post-lift. Drop incline immediately if shin tension builds. Never chase the number." },
+    movements: [
+      { name: "Barbell Back Squat", sets: 4, reps: "5–8", note: "Drive knees out — 'spread the floor.' Trains external rotation that fixes knock knees." },
+      { name: "Barbell Bench Press", sets: 4, reps: "5–8", note: "Retract scapula, full ROM, controlled descent." },
+      { name: "Barbell Row", sets: 4, reps: "6–8", note: "Hinge at hip, drive elbows back, chest toward bar." },
+      { name: "Romanian Deadlift", sets: 3, reps: "8–10", note: "Soft knee, hip hinge. Feel hamstring stretch at bottom." },
+      { name: "DB Overhead Press", sets: 3, reps: "8–10", note: "Core tight, full lockout at top." },
+      { name: "DB Lateral Raise", sets: 3, reps: "12–15", note: "Lead with elbows, strict form, no swinging." },
+    ]
+  },
+  Wednesday: {
+    focus: "Full Body — Hinge & Pull Primary",
+    rationale: "Rack pull replaces conventional deadlift — full hip hinge stimulus, controlled environment. Incline DB hits upper chest the bench missed. Leg press adds quad volume without spinal load. Face pull is non-negotiable for shoulder health under pressing volume.",
+    cardio: { duration: "20–30 min", incline: "6–7%", pace: "2.5–3.0 mph", note: "Post-lift. Conversational pace — Zone 2 only (120–140 BPM)." },
+    movements: [
+      { name: "Rack Pull (Barbell)", sets: 4, reps: "5–6", note: "Bar just below knee. Drive through floor, hips through at top." },
+      { name: "Incline DB Bench Press", sets: 4, reps: "6–8", note: "30–45° incline. Upper chest emphasis. Control the descent." },
+      { name: "Lat Pulldown", sets: 4, reps: "8–10", note: "Wide grip. Full stretch at top, pull to upper chest." },
+      { name: "Leg Press", sets: 4, reps: "8–10", note: "Shoulder width. Drive knees out throughout. Full depth. No lock at top." },
+      { name: "Seated Cable Row", sets: 3, reps: "10–12", note: "Chest tall, elbows drive back. Squeeze at peak." },
+      { name: "Face Pull", sets: 3, reps: "12–15", note: "Cable at eye level. External rotate at end. Rear delt + rotator cuff." },
+    ]
+  },
+  Friday: {
+    focus: "Full Body — Volume, Posterior Chain & Alignment",
+    rationale: "Hack squat as primary leg driver — knee dominant, no spinal compression. Leg curl ensures hamstrings get isolated work every week. Hip abduction machine directly trains the external rotation that corrects knock knees. Arms get dedicated volume here without stealing from compound days.",
+    cardio: { duration: "20–30 min", incline: "6–7%", pace: "2.5–3.0 mph", note: "Post-lift. End of week — stay conservative on incline." },
+    movements: [
+      { name: "Hack Squat", sets: 4, reps: "8–10", note: "Feet shoulder width. Drive knees out. Full depth. Quad and glute emphasis." },
+      { name: "Incline Machine Chest Press", sets: 3, reps: "8–10", note: "Controlled eccentric. 2 seconds down." },
+      { name: "Cable Row or Chest Supported Row", sets: 4, reps: "8–10", note: "Chest on pad eliminates momentum. Pure back stimulus." },
+      { name: "Leg Curl (Seated or Lying)", sets: 4, reps: "10–12", note: "Full hamstring isolation. Slow tempo both directions." },
+      { name: "Hip Abduction Machine", sets: 3, reps: "15–20", note: "Light weight. Slow controlled tempo. Squeeze at full abduction. Loaded version of your clamshell — directly corrects knock knees." },
+      { name: "EZ Bar or DB Curl", sets: 3, reps: "10–12", note: "No swinging. Full supination at top. Slow eccentric." },
+      { name: "Tricep Pushdown (Cable)", sets: 3, reps: "10–12", note: "Elbows fixed at sides. Full extension at bottom." },
+    ]
+  }
+};
+
+const CARDIO_DAYS = {
+  Tuesday: { duration: "45–90 min", incline: "6–7%", pace: "2.5–3.0 mph", note: "Full cardio session. Zone 2 only. Increase incline 0.5% only after zero shin tension for 3+ consecutive sessions." },
+  Thursday: { duration: "45–90 min", incline: "6–7%", pace: "2.5–3.0 mph", note: "Full cardio session. Same protocol as Tuesday." }
+};
+
+const MORNING = [
+  { phase: "Glute Activation", duration: "5 min", color: "gold", movements: [
+    { name: "Clamshell", duration: "20 reps each side", note: "On side, knees bent 90°, feet together. Rotate top knee to ceiling. This is the movement that fixes your knock knees." },
+    { name: "Glute Bridge", duration: "15 reps", note: "On back, feet flat, drive hips to ceiling. Squeeze glutes hard at top. Hold 2 seconds." },
+    { name: "Standing Hip Circle", duration: "10 reps each direction", note: "Hands on hips, slow deliberate full circle. Lubricates hip joint, activates external rotators." }
+  ]},
+  { phase: "Hip Flexor & Adductor", duration: "5 min", color: "teal", movements: [
+    { name: "Kneeling Hip Flexor Stretch", duration: "60 sec each side", note: "Posterior pelvic tilt, drive hips forward, squeeze rear glute. Directly addresses knock knee chain." },
+    { name: "Adductor Rockback", duration: "12 reps each side", note: "On all fours, leg out to side. Rock hips back slowly. Feel inner thigh lengthen." },
+    { name: "90/90 Hip Stretch", duration: "60 sec each side", note: "Front and rear leg at 90°. Sit tall, no lean. Trains hip internal and external rotation." }
+  ]},
+  { phase: "Hamstring & Posterior Chain", duration: "5 min", color: "purple", movements: [
+    { name: "Lying Hamstring Stretch", duration: "60 sec each side", note: "On back, pull straight leg toward chest. Flex foot to intensify." },
+    { name: "Pigeon Pose", duration: "60 sec each side", note: "Deep glute and hip opener. Foundation of splits progression. Breathe into the stretch." },
+    { name: "Cat-Cow", duration: "10 reps", note: "Slow and deliberate. Full spinal flexion and extension. Decompresses lumbar and thoracic after sleep." }
+  ]},
+  { phase: "Thoracic Rotation", duration: "5 min", color: "gold", movements: [
+    { name: "Open Book Stretch", duration: "12 reps each side", note: "On side, rotate top arm to floor. Keep hips stacked. Non-negotiable daily for golf." },
+    { name: "Seated Trunk Rotation", duration: "12 reps each side", note: "Sit cross-legged, rotate from mid-back. Visualize golf backswing. Hips stay square." },
+    { name: "Thoracic Extension over Foam Roller", duration: "60 sec", note: "Roller perpendicular to spine at mid-back. Move roller up in small increments." }
+  ]}
+];
+
+const FOOT_REHAB = [
+  { name: "Calf Raise (Full ROM)", sets: "3", reps: "15–20", note: "Full stretch at bottom, full rise at top. Slow tempo. Balances tibialis work." },
+  { name: "Tibialis Anterior Raise", sets: "3", reps: "15–20", note: "Back to wall, heels 6 inches out. Lift forefoot off ground. Primary stress fracture prevention movement." },
+  { name: "Towel Scrunch", sets: "2", reps: "30 sec each foot", note: "Scrunch towel with toes. Rebuilds arch musculature collapsed by flat feet." },
+  { name: "Short Foot Exercise", sets: "2", reps: "10 each foot", note: "Draw ball of foot toward heel without curling toes. Arch activation." },
+  { name: "Foam Roll Shins", sets: "1", reps: "60 sec each leg", note: "Slow roll along tibialis anterior. Pause on tender spots. Breaks down scar tissue over time." },
+  { name: "Foam Roll Calves", sets: "1", reps: "60 sec each leg", note: "Cross one leg over for pressure. Work ankle to knee." }
+];
+
+const SATURDAY_NOTES = [
+  "Half bucket maximum to start — volume increases as thoracic mobility improves over 6–8 weeks.",
+  "Focus on rotation and contact quality, not distance.",
+  "Stop immediately if lower back tightens — this signals thoracic compensation.",
+  "Every swing is active practice for the rotation pattern you're training every morning.",
+  "Walk the range if possible — additional low impact cardio and foot rehab stimulus."
+];
+
+const SAT_MOBILITY = [
+  { name: "Seated Trunk Rotation", duration: "10 reps each side", note: "Reinforce the rotation pattern post-session." },
+  { name: "Open Book Stretch", duration: "10 reps each side", note: "Decompress thoracic spine after swinging." },
+  { name: "Standing Hip Circle", duration: "10 reps each direction", note: "Reset hips after rotational load." },
+  { name: "Kneeling Hip Flexor Stretch", duration: "60 sec each side", note: "Address stance tightness from the session." }
+];
+
+const VOLUME = [
+  { group: "Quads", sets: "~15 sets", note: "Squat, Leg Press, Hack Squat" },
+  { group: "Hamstrings", sets: "~14 sets", note: "RDL ×2, Rack Pull, Leg Curl" },
+  { group: "Glutes / Abductors", sets: "~13 sets", note: "Squat, RDL, Rack Pull, Leg Press, Hack Squat, Hip Abduction" },
+  { group: "Back", sets: "~18 sets", note: "Barbell Row, Lat Pulldown, Seated Cable Row, Chest Supported Row" },
+  { group: "Chest", sets: "~11 sets", note: "Bench Press, Incline DB, Incline Machine" },
+  { group: "Shoulders", sets: "~9 sets", note: "DB OHP, Lateral Raise ×2, Face Pull" },
+  { group: "Arms", sets: "~6 sets", note: "EZ Curl, Tricep Pushdown" }
+];
+
+const DESIGN_NOTES = [
+  "Posterior chain and glute/abductor volume prioritized — highest metabolic return and directly corrects knock knees.",
+  "Hip abduction machine on Friday is the loaded progression of the morning clamshell.",
+  "Knee-out cue on every squat and leg press trains external rotation that eliminates valgus under load.",
+  "Back volume exceeds chest volume — balances sedentary pressing posture.",
+  "No bodyweight movements — all load is externally controlled and scalable.",
+  "Face pulls every Wednesday — rotator cuff health under 11 sets of weekly pressing.",
+  "Incline treadmill capped at 6–7% — stress fracture history and flat feet protocol.",
+  "Foot/shin rehab daily — best on warm tissue, pre or post gym.",
+  "Morning routine is first thing on waking — cold stiff tissue most receptive to mobility work.",
+  "Golf Saturday reinforces thoracic rotation trained every morning."
+];
+
+const PROGRESSION = [
+  "Add weight when you complete all sets at the top of the rep range with clean form.",
+  "If you miss the bottom of the rep range on 2+ sets, hold the weight and focus on form.",
+  "Track every set, every session. The log is the program — without data you're guessing."
+];
+
+const DAY_COLORS = {
+  Monday: { accent: 'var(--gold)', bg: 'var(--gold-bg)', dim: 'var(--gold-dim)', hex: '#C8A96E' },
+  Wednesday: { accent: 'var(--teal)', bg: 'var(--teal-bg)', dim: 'var(--teal-dim)', hex: '#7EB8A4' },
+  Friday: { accent: 'var(--purple)', bg: 'var(--purple-bg)', dim: 'var(--purple-dim)', hex: '#A67EC8' },
+  Tuesday: { accent: 'var(--teal)', bg: 'var(--teal-bg)', dim: 'var(--teal-dim)', hex: '#7EB8A4' },
+  Thursday: { accent: 'var(--purple)', bg: 'var(--purple-bg)', dim: 'var(--purple-dim)', hex: '#A67EC8' },
+  Saturday: { accent: 'var(--gold)', bg: 'var(--gold-bg)', dim: 'var(--gold-dim)', hex: '#C8A96E' },
+  Sunday: { accent: '#333', bg: 'rgba(51,51,51,0.07)', dim: 'rgba(51,51,51,0.15)', hex: '#333' }
+};
+
+const PHASE_COLORS = { gold: 'var(--gold)', teal: 'var(--teal)', purple: 'var(--purple)' };
+const ALL_DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+const LIFT_DAYS = ['Monday','Wednesday','Friday'];
+
+// ─── DB ──────────────────────────────────────────────────────────────────────
+
+let db;
+
+function openDB() {
+  return new Promise((res, rej) => {
+    const req = indexedDB.open('FitnessApp', 2);
+    req.onupgradeneeded = e => {
+      const d = e.target.result;
+      if (!d.objectStoreNames.contains('logs')) d.createObjectStore('logs');
+      if (!d.objectStoreNames.contains('checks')) d.createObjectStore('checks');
+    };
+    req.onsuccess = e => { db = e.target.result; res(db); };
+    req.onerror = () => rej(req.error);
+  });
+}
+
+function dbGet(store, key) {
+  return new Promise((res, rej) => {
+    const tx = db.transaction(store, 'readonly');
+    const req = tx.objectStore(store).get(key);
+    req.onsuccess = () => res(req.result || null);
+    req.onerror = () => rej(req.error);
+  });
+}
+
+function dbPut(store, key, val) {
+  return new Promise((res, rej) => {
+    const tx = db.transaction(store, 'readwrite');
+    const req = tx.objectStore(store).put(val, key);
+    req.onsuccess = () => res();
+    req.onerror = () => rej(req.error);
+  });
+}
+
+function dbGetAll(store) {
+  return new Promise((res, rej) => {
+    const tx = db.transaction(store, 'readonly');
+    const store_ = tx.objectStore(store);
+    const keys = [], vals = [];
+    store_.openCursor().onsuccess = e => {
+      const c = e.target.result;
+      if (c) { keys.push(c.key); vals.push(c.value); c.continue(); }
+      else res({ keys, vals });
+    };
+  });
+}
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+
+const state = {
+  view: 'morning',
+  liftDay: 'Monday',
+  expandedMovs: {},
+  showRationale: {},
+  logs: {},        // { 'Monday-0': { 0: {weight,reps,note}, ... } }
+  checks: {},      // { 'morning-0-1': true, 'foot-2': true, 'lift-Monday-3': true }
+  allLogs: []      // for history view, loaded fresh
+};
+
+async function loadLogs() {
+  const { keys, vals } = await dbGetAll('logs');
+  keys.forEach((k, i) => { state.logs[k] = vals[i]; });
+}
+
+async function loadChecks() {
+  const { keys, vals } = await dbGetAll('checks');
+  keys.forEach((k, i) => { state.checks[k] = vals[i]; });
+}
+
+async function saveLog(key, data) {
+  state.logs[key] = data;
+  await dbPut('logs', key, data);
+}
+
+async function saveCheck(key, val) {
+  state.checks[key] = val;
+  await dbPut('checks', key, val);
+}
+
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
+
+const h = (tag, attrs = {}, ...children) => {
+  const el = document.createElement(tag);
+  Object.entries(attrs).forEach(([k, v]) => {
+    if (k === 'style' && typeof v === 'object') Object.assign(el.style, v);
+    else if (k.startsWith('on')) el.addEventListener(k.slice(2).toLowerCase(), v);
+    else el.setAttribute(k, v);
+  });
+  children.flat().forEach(c => {
+    if (c == null) return;
+    el.appendChild(typeof c === 'string' ? document.createTextNode(c) : c);
+  });
+  return el;
+};
+
+const secLabel = text => h('div', { class: 'sec-label' }, text);
+
+const noteList = items => h('div', { class: 'note-list' }, ...items.map(n =>
+  h('div', { class: 'note-item' },
+    h('div', { class: 'note-dash' }, '—'),
+    h('div', { class: 'note-text' }, n)
+  )
+));
+
+// ─── RENDER VIEWS ────────────────────────────────────────────────────────────
+
+function renderMorning() {
+  const total = MORNING.reduce((a, p) => a + p.movements.length, 0);
+  const done = MORNING.reduce((a, p, pi) =>
+    a + p.movements.filter((_, mi) => state.checks[`morning-${pi}-${mi}`]).length, 0);
+
+  const frag = document.createDocumentFragment();
+
+  const topRow = h('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' } },
+    h('div', {},
+      h('div', { class: 'sec-label', style: { marginBottom: '4px' } }, 'Daily — First Thing on Waking'),
+      h('div', { style: { fontSize: '14px', color: 'var(--gold)', fontStyle: 'italic' } }, '20 Minute Morning Routine')
+    ),
+    h('div', { style: { fontFamily: 'var(--mono)', fontSize: '11px', color: 'var(--dim2)', marginTop: '18px' } }, `${done}/${total}`)
+  );
+  frag.appendChild(topRow);
+  frag.appendChild(h('div', { class: 'info-box' }, 'Do this before coffee, before your phone. Cold stiff tissue coming out of sleep is most receptive to mobility work. Non-negotiable — treat it like brushing your teeth.'));
+
+  MORNING.forEach((phase, pi) => {
+    const accentColor = PHASE_COLORS[phase.color];
+    const phaseHeader = h('div', { class: 'phase-header' },
+      h('div', { class: 'phase-label', style: { color: accentColor } }, phase.phase),
+      h('div', { class: 'phase-dur' }, phase.duration)
+    );
+    frag.appendChild(phaseHeader);
+
+    phase.movements.forEach((mv, mi) => {
+      const key = `morning-${pi}-${mi}`;
+      const isDone = !!state.checks[key];
+      const dot = h('div', { class: `check-dot${isDone ? ' on' : ''}`, style: { '--accent': accentColor } });
+      const name = h('div', { class: `check-name${isDone ? ' done' : ''}` }, mv.name);
+      const note = h('div', { class: 'check-note' }, mv.note);
+      const dur = h('div', { class: 'check-dur', style: { color: accentColor } }, mv.duration);
+      const row = h('div', { class: `check-row${isDone ? ' checked' : ''}` }, dot, h('div', { class: 'check-body' }, name, note), dur);
+      row.addEventListener('click', async () => {
+        const newVal = !state.checks[key];
+        await saveCheck(key, newVal);
+        dot.className = `check-dot${newVal ? ' on' : ''}`;
+        name.className = `check-name${newVal ? ' done' : ''}`;
+        row.className = `check-row${newVal ? ' checked' : ''}`;
+        const newDone = MORNING.reduce((a, p, pi2) =>
+          a + p.movements.filter((_, mi2) => state.checks[`morning-${pi2}-${mi2}`]).length, 0);
+        topRow.querySelector('div:last-child').textContent = `${newDone}/${total}`;
+      });
+      frag.appendChild(row);
+    });
+  });
+
+  return frag;
+}
+
+function renderFoot() {
+  const done = FOOT_REHAB.filter((_, i) => state.checks[`foot-${i}`]).length;
+  const frag = document.createDocumentFragment();
+
+  const topRow = h('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' } },
+    h('div', {},
+      h('div', { class: 'sec-label', style: { marginBottom: '4px' } }, 'Daily — Pre or Post Gym'),
+      h('div', { style: { fontSize: '14px', color: 'var(--teal)', fontStyle: 'italic' } }, 'Foot & Shin Rehab')
+    ),
+    h('div', { style: { fontFamily: 'var(--mono)', fontSize: '11px', color: 'var(--dim2)', marginTop: '18px' } }, `${done}/${FOOT_REHAB.length}`)
+  );
+  frag.appendChild(topRow);
+  frag.appendChild(h('div', { class: 'info-box' }, '⚠ Stress fracture history + flat feet. Best on warm tissue — pre or post gym. Consistent daily work over 6–8 weeks rebuilds the tissue that protects your shins and arches.'));
+
+  FOOT_REHAB.forEach((ex, i) => {
+    const key = `foot-${i}`;
+    const isDone = !!state.checks[key];
+    const dot = h('div', { class: `check-dot${isDone ? ' on' : ''}`, style: { '--accent': 'var(--teal)' } });
+    const name = h('div', { class: `check-name${isDone ? ' done' : ''}` }, ex.name);
+    const note = h('div', { class: 'check-note' }, ex.note);
+    const dur = h('div', { class: 'check-dur', style: { color: 'var(--teal)' } }, ex.sets ? `${ex.sets}×${ex.reps}` : ex.reps);
+    const row = h('div', { class: `check-row${isDone ? ' checked' : ''}` }, dot, h('div', { class: 'check-body' }, name, note), dur);
+    row.addEventListener('click', async () => {
+      const newVal = !state.checks[key];
+      await saveCheck(key, newVal);
+      dot.className = `check-dot${newVal ? ' on' : ''}`;
+      name.className = `check-name${newVal ? ' done' : ''}`;
+      row.className = `check-row${newVal ? ' checked' : ''}`;
+      const newDone = FOOT_REHAB.filter((_, j) => state.checks[`foot-${j}`]).length;
+      topRow.querySelector('div:last-child').textContent = `${newDone}/${FOOT_REHAB.length}`;
+    });
+    frag.appendChild(row);
+  });
+
+  return frag;
+}
+
+function renderWeek() {
+  const frag = document.createDocumentFragment();
+  frag.appendChild(secLabel('Weekly Schedule'));
+
+  const schedule = [
+    { day: 'Monday', detail: '20 min morning · Lift · Incline walk 20–30 min · Foot rehab', tag: 'LIFT', color: DAY_COLORS.Monday.hex },
+    { day: 'Tuesday', detail: '20 min morning · Incline walk 45–90 min · Foot rehab', tag: 'CARDIO', color: DAY_COLORS.Tuesday.hex },
+    { day: 'Wednesday', detail: '20 min morning · Lift · Incline walk 20–30 min · Foot rehab', tag: 'LIFT', color: DAY_COLORS.Wednesday.hex },
+    { day: 'Thursday', detail: '20 min morning · Incline walk 45–90 min · Foot rehab', tag: 'CARDIO', color: DAY_COLORS.Thursday.hex },
+    { day: 'Friday', detail: '20 min morning · Lift · Incline walk 20–30 min · Foot rehab', tag: 'LIFT', color: DAY_COLORS.Friday.hex },
+    { day: 'Saturday', detail: '20 min morning · Golf range · Post-golf mobility · Foot rehab', tag: 'GOLF', color: DAY_COLORS.Saturday.hex },
+    { day: 'Sunday', detail: '20 min morning · Full rest', tag: 'REST', color: '#222' }
+  ];
+
+  schedule.forEach(s => {
+    frag.appendChild(h('div', { class: 'week-row' },
+      h('div', {},
+        h('div', { class: 'week-day' }, s.day),
+        h('div', { class: 'week-detail' }, s.detail)
+      ),
+      h('div', { class: 'week-tag', style: { color: s.color } }, s.tag)
+    ));
+  });
+
+  frag.appendChild(h('div', { style: { height: '16px' } }));
+
+  const notesCard = h('div', { class: 'card-dark' },
+    secLabel('Daily Non-Negotiables'),
+    noteList([
+      '20 min morning routine — first thing on waking, every day including Sunday.',
+      'Foot & shin rehab — pre or post gym on training days, standalone on rest days.',
+      'Knee-out cue on every squat, leg press, and hack squat.',
+      'Incline treadmill stays at 6–7% until zero shin tension for 3+ consecutive sessions.'
+    ])
+  );
+  frag.appendChild(notesCard);
+
+  return frag;
+}
+
+function renderLift() {
+  const frag = document.createDocumentFragment();
+
+  // Day tabs
+  const tabs = h('div', { class: 'day-tabs', id: 'day-tabs' });
+  ALL_DAYS.forEach(d => {
+    const dc = DAY_COLORS[d];
+    const tab = h('button', { class: 'day-tab' }, d.slice(0, 3));
+    tab.style.color = state.liftDay === d ? dc.hex : '';
+    tab.style.borderBottomColor = state.liftDay === d ? dc.hex : 'transparent';
+    tab.addEventListener('click', () => {
+      state.liftDay = d;
+      renderView('lift');
+    });
+    tabs.appendChild(tab);
+  });
+  frag.appendChild(tabs);
+
+  const scroll = h('div', { class: 'scroll' });
+  const d = state.liftDay;
+  const dc = DAY_COLORS[d];
+
+  if (LIFT_DAYS.includes(d)) {
+    const routine = LIFTING[d];
+    const doneCount = routine.movements.filter((_, i) => state.checks[`lift-${d}-${i}`]).length;
+
+    // Focus row
+    scroll.appendChild(h('div', { class: 'prog-row' },
+      h('div', {},
+        h('div', { class: 'sec-label', style: { marginBottom: '4px' } }, 'Focus'),
+        h('div', { class: 'prog-focus', style: { color: dc.accent } }, routine.focus)
+      ),
+      h('div', { class: 'prog-count', id: 'lift-count' }, `${doneCount}/${routine.movements.length}`)
+    ));
+
+    // Rationale
+    const rationaleBox = h('div', { class: 'rationale-box', style: { display: state.showRationale[d] ? 'block' : 'none' } }, routine.rationale);
+    const rationaleBtn = h('button', { class: 'rationale-btn' }, state.showRationale[d] ? '▲ hide rationale' : '▼ why these movements');
+    rationaleBtn.addEventListener('click', () => {
+      state.showRationale[d] = !state.showRationale[d];
+      rationaleBox.style.display = state.showRationale[d] ? 'block' : 'none';
+      rationaleBtn.textContent = state.showRationale[d] ? '▲ hide rationale' : '▼ why these movements';
+    });
+    scroll.appendChild(rationaleBtn);
+    scroll.appendChild(rationaleBox);
+
+    // Movements
+    routine.movements.forEach((mv, i) => {
+      const movKey = `${d}-${i}`;
+      const checkKey = `lift-${d}-${i}`;
+      const isDone = !!state.checks[checkKey];
+      const isExp = !!state.expandedMovs[movKey];
+      const logData = state.logs[movKey] || {};
+
+      const dot = h('div', { class: `mov-dot${isDone ? ' checked' : ''}`, style: { '--accent': dc.hex } });
+      const name = h('div', { class: `mov-name${isDone ? ' done' : ''}` }, mv.name);
+      const note = h('div', { class: 'mov-note' }, mv.note);
+      const setsLabel = h('div', { class: `mov-sets${isDone ? ' done' : ''}`, style: { color: isDone ? 'var(--dim3)' : dc.accent } }, `${mv.sets}×${mv.reps}`);
+      const logBtn = h('button', { class: `log-btn${isExp ? ' open' : ''}` }, isExp ? 'HIDE' : 'LOG');
+
+      logBtn.style.setProperty('--accent', dc.hex);
+      if (isExp) {
+        logBtn.style.background = dc.dim;
+        logBtn.style.borderColor = dc.hex + '55';
+        logBtn.style.color = dc.hex;
+      }
+
+      const movHeader = h('div', { class: 'mov-header' },
+        dot, h('div', { class: 'mov-info' }, name, note),
+        h('div', { class: 'mov-right' }, setsLabel, logBtn)
+      );
+
+      movHeader.addEventListener('click', async (e) => {
+        if (e.target === logBtn || logBtn.contains(e.target)) return;
+        const newVal = !state.checks[checkKey];
+        await saveCheck(checkKey, newVal);
+        dot.className = `mov-dot${newVal ? ' checked' : ''}`;
+        name.className = `mov-name${newVal ? ' done' : ''}`;
+        setsLabel.className = `mov-sets${newVal ? ' done' : ''}`;
+        setsLabel.style.color = newVal ? 'var(--dim3)' : dc.accent;
+        movRow.className = `mov-row${newVal ? ' done' : ''}`;
+        movRow.style.background = newVal ? dc.bg : '';
+        movRow.style.borderColor = newVal ? dc.hex + '33' : 'var(--border)';
+        const newDone = routine.movements.filter((_, j) => state.checks[`lift-${d}-${j}`]).length;
+        document.getElementById('lift-count').textContent = `${newDone}/${routine.movements.length}`;
+      });
+
+      // Log panel
+      const logPanel = h('div', { class: 'log-panel', style: { display: isExp ? 'block' : 'none' } });
+      logPanel.appendChild(h('div', { class: 'sec-label' }, 'Set Log'));
+      const headGrid = h('div', { class: 'log-grid-head' });
+      ['SET','LBS','REPS','NOTE'].forEach(lbl => headGrid.appendChild(h('div', { class: 'log-head-cell' }, lbl)));
+      logPanel.appendChild(headGrid);
+
+      for (let si = 0; si < mv.sets; si++) {
+        const setData = logData[si] || {};
+        const numEl = h('div', { class: 'log-set-num' }, String(si + 1).padStart(2, '0'));
+        const wInput = h('input', { class: 'log-input weight', type: 'number', placeholder: '—', value: setData.weight || '' });
+        const rInput = h('input', { class: 'log-input', type: 'number', placeholder: '—', value: setData.reps || '' });
+        const nInput = h('input', { class: 'log-input', type: 'text', placeholder: '—', value: setData.note || '' });
+
+        const saveInputs = async () => {
+          const current = state.logs[movKey] || {};
+          current[si] = { weight: wInput.value, reps: rInput.value, note: nInput.value };
+          await saveLog(movKey, current);
+        };
+        wInput.addEventListener('input', saveInputs);
+        rInput.addEventListener('input', saveInputs);
+        nInput.addEventListener('input', saveInputs);
+
+        wInput.style.color = dc.hex;
+        const row = h('div', { class: 'log-grid-row' }, numEl, wInput, rInput, nInput);
+        logPanel.appendChild(row);
+      }
+
+      logBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        state.expandedMovs[movKey] = !state.expandedMovs[movKey];
+        const nowOpen = state.expandedMovs[movKey];
+        logPanel.style.display = nowOpen ? 'block' : 'none';
+        logBtn.textContent = nowOpen ? 'HIDE' : 'LOG';
+        logBtn.className = `log-btn${nowOpen ? ' open' : ''}`;
+        if (nowOpen) {
+          logBtn.style.background = dc.dim;
+          logBtn.style.borderColor = dc.hex + '55';
+          logBtn.style.color = dc.hex;
+        } else {
+          logBtn.style.background = '#181818';
+          logBtn.style.borderColor = '#252525';
+          logBtn.style.color = '#333';
+        }
+      });
+
+      const movRow = h('div', { class: `mov-row${isDone ? ' done' : ''}` }, movHeader, logPanel);
+      movRow.style.background = isDone ? dc.bg : '';
+      movRow.style.borderColor = isDone ? dc.hex + '33' : 'var(--border)';
+      scroll.appendChild(movRow);
+    });
+
+    // Cardio
+    scroll.appendChild(h('div', { style: { height: '20px' } }));
+    scroll.appendChild(secLabel('Incline Treadmill — Post Lift'));
+    const c = routine.cardio;
+    scroll.appendChild(h('div', { class: 'cardio-box' },
+      h('div', { class: 'cardio-main' }, `${c.duration} · ${c.incline} incline · ${c.pace}`),
+      h('div', { class: 'cardio-note' }, c.note)
+    ));
+
+  } else if (CARDIO_DAYS[d]) {
+    scroll.appendChild(h('div', { style: { marginBottom: '20px' } },
+      h('div', { class: 'sec-label', style: { marginBottom: '4px' } }, 'Off Day'),
+      h('div', { style: { fontSize: '14px', color: dc.accent, fontStyle: 'italic' } }, 'Cardio + Foot Rehab')
+    ));
+    scroll.appendChild(secLabel('Incline Treadmill'));
+    const c = CARDIO_DAYS[d];
+    scroll.appendChild(h('div', { class: 'cardio-box' },
+      h('div', { class: 'cardio-main' }, `${c.duration} · ${c.incline} incline · ${c.pace}`),
+      h('div', { class: 'cardio-note' }, c.note)
+    ));
+
+  } else if (d === 'Saturday') {
+    scroll.appendChild(h('div', { style: { marginBottom: '20px' } },
+      h('div', { class: 'sec-label', style: { marginBottom: '4px' } }, 'Saturday'),
+      h('div', { style: { fontSize: '14px', color: dc.accent, fontStyle: 'italic' } }, 'Golf Range + Post-Golf Mobility')
+    ));
+    scroll.appendChild(secLabel('Golf Range'));
+    scroll.appendChild(h('div', { class: 'card', style: { marginBottom: '20px' } }, noteList(SATURDAY_NOTES)));
+    scroll.appendChild(secLabel('Post-Golf Mobility'));
+    SAT_MOBILITY.forEach(mv => {
+      scroll.appendChild(h('div', { class: 'check-row' },
+        h('div', { class: 'check-body' },
+          h('div', { class: 'check-name' }, mv.name),
+          h('div', { class: 'check-note' }, mv.note)
+        ),
+        h('div', { class: 'check-dur', style: { color: dc.accent } }, mv.duration)
+      ));
+    });
+
+  } else {
+    scroll.appendChild(h('div', { class: 'rest-screen' },
+      h('div', { class: 'rest-dash' }, '—'),
+      h('div', { class: 'rest-label' }, 'FULL REST'),
+      h('div', { class: 'rest-sub' }, 'Morning routine still applies. Everything else — off.')
+    ));
+  }
+
+  frag.appendChild(scroll);
+  return frag;
+}
+
+async function renderHistory() {
+  const { keys, vals } = await dbGetAll('logs');
+  const frag = document.createDocumentFragment();
+  frag.appendChild(secLabel('Weight Log History'));
+
+  const entries = [];
+  keys.forEach((k, i) => {
+    const [day, movIdx] = k.split('-');
+    if (!LIFTING[day]) return;
+    const mv = LIFTING[day].movements[parseInt(movIdx)];
+    if (!mv) return;
+    const sets = Object.entries(vals[i]).filter(([, v]) => v.weight || v.reps);
+    if (sets.length > 0) entries.push({ day, movement: mv.name, sets, color: DAY_COLORS[day] });
+  });
+
+  if (entries.length === 0) {
+    frag.appendChild(h('div', { class: 'empty' },
+      h('div', { class: 'empty-main' }, 'No sets logged yet.'),
+      h('div', { class: 'empty-sub' }, 'Go to Lift → select a day → tap LOG.')
+    ));
+  } else {
+    entries.forEach(entry => {
+      const card = h('div', { class: 'hist-card' });
+      card.appendChild(h('div', { class: 'hist-head' },
+        h('div', {},
+          h('div', { class: 'hist-mov' }, entry.movement),
+          h('div', { class: 'hist-day' }, entry.day)
+        ),
+        h('div', { class: 'hist-dot', style: { background: entry.color.hex } })
+      ));
+      const body = h('div', { class: 'hist-body' });
+      const headRow = h('div', { class: 'hist-grid' });
+      ['SET','LBS','REPS','NOTE'].forEach(lbl => headRow.appendChild(h('div', { class: 'hist-head-cell' }, lbl)));
+      body.appendChild(headRow);
+      entry.sets.forEach(([si, val]) => {
+        const row = h('div', { class: 'hist-row' });
+        row.appendChild(h('div', { class: 'hist-cell', style: { color: 'var(--dim3)' } }, String(Number(si) + 1).padStart(2, '0')));
+        row.appendChild(h('div', { class: 'hist-cell', style: { color: entry.color.hex } }, val.weight || '—'));
+        row.appendChild(h('div', { class: 'hist-cell', style: { color: 'var(--text)' } }, val.reps || '—'));
+        row.appendChild(h('div', { class: 'hist-cell', style: { color: 'var(--dim)' } }, val.note || '—'));
+        body.appendChild(row);
+      });
+      card.appendChild(body);
+      frag.appendChild(card);
+    });
+  }
+
+  return frag;
+}
+
+function renderVolume() {
+  const frag = document.createDocumentFragment();
+  frag.appendChild(secLabel('Weekly Lifting Volume'));
+
+  const volCard = h('div', { class: 'card', style: { padding: '0', marginBottom: '14px' } });
+  VOLUME.forEach(v => {
+    volCard.appendChild(h('div', { class: 'vol-row' },
+      h('div', {},
+        h('div', { class: 'vol-group' }, v.group),
+        h('div', { class: 'vol-note' }, v.note)
+      ),
+      h('div', { class: 'vol-sets' }, v.sets)
+    ));
+  });
+  frag.appendChild(volCard);
+
+  frag.appendChild(secLabel('Design Notes'));
+  frag.appendChild(h('div', { class: 'card-dark', style: { marginBottom: '14px' } }, noteList(DESIGN_NOTES)));
+
+  frag.appendChild(secLabel('Progression Rules'));
+  frag.appendChild(h('div', { class: 'card-dark' },
+    ...PROGRESSION.map((note, i) =>
+      h('div', { class: 'note-item' },
+        h('div', { class: 'note-dash', style: { color: 'var(--dim4)' } }, String(i + 1).padStart(2, '0')),
+        h('div', { class: 'note-text' }, note)
+      )
+    )
+  ));
+
+  return frag;
+}
+
+// ─── RENDER ENGINE ───────────────────────────────────────────────────────────
+
+async function renderView(view) {
+  state.view = view;
+  const container = document.getElementById('view-container');
+  container.innerHTML = '';
+
+  // Update nav
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.view === view);
+  });
+
+  let content;
+  const needsScroll = ['morning', 'foot', 'week', 'history', 'volume'];
+
+  if (view === 'morning') content = renderMorning();
+  else if (view === 'foot') content = renderFoot();
+  else if (view === 'week') content = renderWeek();
+  else if (view === 'lift') { content = renderLift(); container.appendChild(content); return; }
+  else if (view === 'history') content = await renderHistory();
+  else if (view === 'volume') content = renderVolume();
+
+  if (needsScroll.includes(view)) {
+    const scroll = h('div', { class: 'scroll' });
+    scroll.appendChild(content);
+    container.appendChild(scroll);
+  } else {
+    container.appendChild(content);
+  }
+}
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+
+async function init() {
+  await openDB();
+  await Promise.all([loadLogs(), loadChecks()]);
+
+  // Build nav
+  const nav = document.getElementById('main-nav');
+  const navItems = [
+    { view: 'morning', label: 'AM' },
+    { view: 'foot', label: 'Rehab' },
+    { view: 'week', label: 'Week' },
+    { view: 'lift', label: 'Lift' },
+    { view: 'history', label: 'Log' },
+    { view: 'volume', label: 'Vol' }
+  ];
+  navItems.forEach(({ view, label }) => {
+    const btn = h('button', { class: 'nav-btn', 'data-view': view }, label);
+    btn.addEventListener('click', () => renderView(view));
+    nav.appendChild(btn);
+  });
+
+  await renderView('morning');
+
+  // Service worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(console.error);
+  }
+
+  // Install prompt
+  let deferredPrompt;
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    deferredPrompt = e;
+    document.getElementById('install-banner').classList.add('show');
+  });
+  document.getElementById('install-btn').addEventListener('click', async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    document.getElementById('install-banner').classList.remove('show');
+  });
+  document.getElementById('install-close').addEventListener('click', () => {
+    document.getElementById('install-banner').classList.remove('show');
+  });
+}
+
+init();
+</script>
+</body>
+</html>
