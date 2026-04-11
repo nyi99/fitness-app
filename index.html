@@ -519,13 +519,13 @@ function renderWeek() {
   frag.appendChild(secLabel('Weekly Schedule'));
 
   const schedule = [
-    { day: 'Monday', detail: '20 min morning · Lift · Incline walk 20–30 min · Foot rehab', tag: 'LIFT', color: DAY_COLORS.Monday.hex },
-    { day: 'Tuesday', detail: '20 min morning · Incline walk 45–90 min · Foot rehab', tag: 'CARDIO', color: DAY_COLORS.Tuesday.hex },
-    { day: 'Wednesday', detail: '20 min morning · Lift · Incline walk 20–30 min · Foot rehab', tag: 'LIFT', color: DAY_COLORS.Wednesday.hex },
-    { day: 'Thursday', detail: '20 min morning · Incline walk 45–90 min · Foot rehab', tag: 'CARDIO', color: DAY_COLORS.Thursday.hex },
-    { day: 'Friday', detail: '20 min morning · Lift · Incline walk 20–30 min · Foot rehab', tag: 'LIFT', color: DAY_COLORS.Friday.hex },
-    { day: 'Saturday', detail: '20 min morning · Golf range · Post-golf mobility · Foot rehab', tag: 'GOLF', color: DAY_COLORS.Saturday.hex },
-    { day: 'Sunday', detail: '20 min morning · Full rest', tag: 'REST', color: '#222' }
+    { day: 'Monday', detail: '20 min morning · Lift · Incline walk 20–30 min · Foot rehab', tag: 'LIFT', color: 'var(--gold)' },
+    { day: 'Tuesday', detail: '20 min morning · Incline walk 45–90 min · Foot rehab', tag: 'CARDIO', color: 'var(--teal)' },
+    { day: 'Wednesday', detail: '20 min morning · Lift · Incline walk 20–30 min · Foot rehab', tag: 'LIFT', color: 'var(--gold)' },
+    { day: 'Thursday', detail: '20 min morning · Incline walk 45–90 min · Foot rehab', tag: 'CARDIO', color: 'var(--teal)' },
+    { day: 'Friday', detail: '20 min morning · Lift · Incline walk 20–30 min · Foot rehab', tag: 'LIFT', color: 'var(--gold)' },
+    { day: 'Saturday', detail: '20 min morning · Golf range · Post-golf mobility · Foot rehab', tag: 'GOLF', color: 'var(--purple)' },
+    { day: 'Sunday', detail: '20 min morning · Full rest', tag: 'REST', color: 'var(--dim)' }
   ];
 
   schedule.forEach(s => {
